@@ -1,0 +1,74 @@
+---
+title: "Machine Learning Timeline"
+author: '@sakalli'
+date: "30 9 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 2000)
+```
+
+This is a simple visualization of the timeline in <https://en.wikipedia.org/wiki/Timeline_of_machine_learning>. The plots keep are automatically uptodate.
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=FALSE, fig.width=6, dpi=600}
+
+library(ggrepel)
+library(dplyr)
+library(rvest)
+url <- "https://en.wikipedia.org/wiki/Timeline_of_machine_learning"
+timeline <- url %>%
+  read_html() %>%
+  html_nodes(xpath='//*[@id="mw-content-text"]/table[2]') %>%
+  html_table()
+timeline <-  timeline[[1]]
+
+  
+# ss <- gs_url("https://docs.google.com/spreadsheets/d/16EsQRV9FBOf58UUxQ-ljzIhlvAMzNjWYpJfs6NndrdM/pubhtml", lookup = FALSE)
+# timeline <-  ss %>% gs_read(range = cell_limits(c(1, 1), c(1000, 26)))
+timeline$y <- jitter(rep(0, dim(timeline)[1]),amount = 0.3)
+p <- ggplot(timeline, aes(Year,y, label=Caption)) + 
+  ggrepel::geom_label_repel(aes(label = Caption, fill = factor(Caption)), data = timeline, force = 20, fontface = 'bold', color = 'white') +
+  geom_point() +
+  ylim(-10,10) +
+  labs(title = NULL,
+       y = NULL) +
+  theme(axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position="none")
+
+  
+ ggsave(filename = "timeline-machine-learning.png", plot= p, width = 20, height = 10) 
+  
+ pp <- ggplot(timeline %>% filter(Year > 1950), 
+              aes(Year,y, label=Caption)) + 
+   ggrepel::geom_label_repel(aes(label = Caption, 
+                                 fill = factor(Caption)), 
+                             data = timeline %>% filter(Year > 1950), 
+                             force = 20, 
+                             fontface = 'bold', 
+                             color = 'white') +
+   geom_point() +
+   ylim(-10,10) +
+   labs(title = NULL,
+        y = NULL) +
+   theme(
+     axis.text.y=element_blank(),
+     axis.ticks=element_blank(),
+     axis.title.y=element_blank(),
+     legend.position="none")
+ 
+ 
+  ggsave(filename = "timeline-machine-learning-1950-now.png", plot= pp, width = 20, height = 10) 
+
+```
+
+![Since 1950](timeline-machine-learning-1950-now.png "Since 1950")
+
+![the entire timeline](timeline-machine-learning.png "The entire timeline")
+
+<script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','https://www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-74818-38', 'auto'); ga('send', 'pageview');</script>
+
+
