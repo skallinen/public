@@ -1,5 +1,5 @@
 ---
-title: "FiveThirtyEight Net Favorability vs Election Margin Reprodu"
+title: "FiveThirtyEight Net Favorability vs Election Margin Reproduced"
 author: '@sakalli'
 date: "1.10.2016"
 output:
@@ -20,7 +20,9 @@ Read this excellent analysis by Harry Enten at FiveThirtyEight <http://fivethirt
 
 So as you can see below the adjusted R-squared is not bad at 0.79 and p-value at 0.0008 is good as well. Somewhat surprisingly good, as we are operating with only 9 observations. 
 
-If we do assume that this model holds, it would predict that Clinton will win with a margin of a little more than 4%. Although the 95% prediction interval for the prediction is rather wide, from -6.2 to 14.5, which also means that a trump win is within it. If you lower the level to 62% you get the interval entirely on Clintons side. That means that as Clinton got the 9.8% advantage in favorability, the model predicts that Clinton will win 62 out of a 100 times. Which is not that different from what the FiveThirthyEight Polls Plus model forcasts at the moment.
+If we do assume that this model holds, it would predict that Clinton will win with a margin of a little more than 4%. Although the 95% prediction interval for the prediction is rather wide, from -6.2 to 14.5, which also means that a trump win is within it. If you lower the level to 62% you get the interval entirely on Clintons side. That means that as Clinton got the 9.8% advantage in favorability, the model **predicts that Clinton will win 62 out of a 100 times.** Which is not that different from what the FiveThirthyEight Polls Plus model forcasts at the moment.
+
+If you have corrections or improvements please do a pull request at <https://github.com/skallinen/public>. 
 
 
 ## Calculations
@@ -39,30 +41,30 @@ library(plotly)
 # loading the fivethirthyeigh data - 
 url <- "http://fivethirtyeight.com/features/trump-is-more-unpopular-than-clinton-is-and-that-matters/"
 
-table <- url %>%
+favorability_table <- url %>%
   read_html() %>%
   html_nodes(xpath='//*[@id="post-128864"]/div/section/table') %>%
   html_table()
 
-table <-  table %>% data.frame()
+favorability_table <-  favorability_table %>% data.frame()
 
-names(table) <- table[1,]
-table <- table[-1,]
+names(favorability_table) <- favorability_table[1,]
+favorability_table <- favorability_table[-1,]
 
 # loading the election result data -
 url2 <- "http://uselectionatlas.org/RESULTS/compare.php?type=national&year=2012&f=0&off=0&elect=0"
 
-results <- url2 %>%
+election_results <- url2 %>%
   read_html() %>%
   html_table(fill=T)
 
-results <-  results[[1]] %>% data.frame()
-names(results) <- results[2,]
-results <- results[-1:-3,1:13] %>% select(Year, `%Margin`)
+election_results <-  election_results[[1]] %>% data.frame()
+names(election_results) <- election_results[2,]
+election_results <- election_results[-1:-3,1:13] %>% select(Year, `%Margin`)
 
 
 # combining the data -
-combined_table <-  left_join(table, results, by = c("YEAR" = "Year"))
+combined_table <-  left_join(favorability_table, election_results, by = c("YEAR" = "Year"))
 
 combined_table$DIFFERENCE <- gsub("[^\\d]+\\.?[^\\d]+","\\1",
                                   combined_table$DIFFERENCE, 
@@ -109,13 +111,12 @@ fit <- lm(election_win_margin ~ dem_favorability_advantage, data = combined_tabl
 summary(fit)
 
 # predicting with the model -
-pred1 <- predict(fit,  data.frame(dem_favorability_advantage=9.8),interval = "prediction", level = 0.95)
 
-pred1
+# prediction interval level at 95%
+predict(fit,  data.frame(dem_favorability_advantage=9.8),interval = "prediction", level = 0.95)
 
-pred2 <- predict(fit,  data.frame(dem_favorability_advantage=9.8),interval = "prediction", level = 0.62)
-
-pred2
+# prediction interval level at 62%
+predict(fit,  data.frame(dem_favorability_advantage=9.8),interval = "prediction", level = 0.62)
 
 ```
 
